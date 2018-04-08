@@ -2,19 +2,19 @@ import keras
 import numpy as np
 import cv2
 
-from keras.preprocessing.image import  ImageDataGenerator
+#from keras.preprocessing.image import  ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Conv2D, Activation, MaxPooling2D, Flatten, Dense, Dropout
 from parse_cat_dog_data import *
 
 
-img_width, img_height = 150, 150
-training_data = 'training_images/test' #String representation of the directory to search for training data
-testing_data = 'training_images/train_new'   #String representation of the directory to search for testing data
+#img_width, img_height = 150, 150
+#training_data = 'training_images/test' #String representation of the directory to search for training data
+#testing_data = 'training_images/train_new'   #String representation of the directory to search for testing data
 #epoch = 50   #Number of epochs: full instances of processing all images once (forward passes + backward passes)
 #batch_size = 16 #Number of examples to process per batch
 
-generate_image_data = ImageDataGenerator(rescale=1./255) #Instantiate ImageDataGenerator class which is used to format images according
+#generate_image_data = ImageDataGenerator(rescale=1./255) #Instantiate ImageDataGenerator class which is used to format images according
                                            #to the following member function: flow_from_directory
 
 #flow_from_directory() in this case takes several arguments:
@@ -33,6 +33,8 @@ cv2.waitKey(0)
 
 #testing = generate_image_data.flow_from_directory(testing_data, target_size=(img_width, img_height), color_mode='rgb', \
 #                                                  classes=['cats', 'dogs'], class_mode='binary', batch_size=40)
+
+#model.fit_generator(generator=training, steps_per_epoch=50, epochs=10, verbose=1)
 
 model = Sequential() #Sequential model (Neural Network with layers arranged in sequence) The architecture of this network
                      #is defined in the following statements as a network with three convolutional layers followed by
@@ -69,9 +71,15 @@ model.add(Activation('sigmoid')) #Use the sigmoid function as the activation fun
 #based on rmsprop and to return information about the accuracy of the network.
 model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
 
+#Save the model's architecture in a JSON (JavaScript Object Notation) file
+json_string = model.to_json()
+
+#Instantiate cats_and_dogs data formatting class
 data = cats_and_dogs(4000, 2000)
+#Call the object's get_data() function which returns a tuple (, , ,) of the training and testing feature and label lists
 (x_train, y_train, x_test, y_test) = data.get_data()
 
+#Convert the lists retrieved by the data formatter class into numpy arrays
 x_train = np.asarray(x_train)
 y_train = np.asarray(y_train)
 x_test = np.asarray(x_test)
@@ -83,8 +91,16 @@ x_test = x_test.reshape(x_test.shape[0], 32, 32, 3)
 x_train = x_train.astype('float32')
 x_test = x_test.astype('float32')
 
+#Perform Feature Normalization by dividing each entry or element of each training example's features by the range of
+#colors (i.e. 0 - 255 where each channel (red, green, blue) is allotted 8 bits for specification of color
 x_train /= 255
 x_test /= 255
 
+#Train the convolutional neural network created above using the data from the training set retreived with a batch size
+#(number of training examples per forward/backward pass of 80, 50 epochs (total number of full passes through the
+#network of all batches and verbosity set to 1 for display of loss and accuracy as well as a progress bar
 model.fit(x_train, y_train, batch_size=80, epochs=50, verbose=1)
-#model.fit_generator(generator=training, steps_per_epoch=50, epochs=10, verbose=1)
+
+#Save the weights calculated from training in a HDF5 file for portability of weights and avoiding the necessity of
+#retraining the network if it is to be used again or elsewhere
+model.save('convolutional2D_0.h5')
