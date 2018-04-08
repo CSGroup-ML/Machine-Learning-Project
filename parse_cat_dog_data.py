@@ -63,10 +63,12 @@ class cats_and_dogs(object):
                 self.X_train.append(self.dog_pictures_train[dog_index])
                 self.Y_train.append([0])
                 dog_index += 1
+                print("Dog")
             else:
                 self.X_train.append(self.cat_pictures_train[cat_index])
                 self.Y_train.append([1])
                 cat_index += 1
+                print("Cat")
 
         cat_index = 0
         dog_index = 0
@@ -84,3 +86,6 @@ class cats_and_dogs(object):
 
     def get_data(self):
         return (self.X_train, self.Y_train, self.X_test, self.Y_test)
+
+    def get_data_set_for_predictions(self):
+        return (self.X_train, self.Y_train)
